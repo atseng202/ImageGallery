@@ -157,6 +157,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDropDelegate {
             DispatchQueue.global(qos: .userInitiated).async {
                 [weak self] in
                 let urlContents = try? Data(contentsOf: url)
+                
                 DispatchQueue.main.async {
                     if let imageData = urlContents {
                         if let imageReceived = UIImage(data: imageData) {
@@ -216,13 +217,8 @@ extension ImageGalleryCollectionViewController: UICollectionViewDropDelegate {
                 let placeholderContext = coordinator.drop(item.dragItem, to: UICollectionViewDropPlaceholder(insertionIndexPath: destinationIndexPath, reuseIdentifier: "DropPlaceholderCell"))
                 
                 item.dragItem.itemProvider.loadObject(ofClass: NSURL.self, completionHandler: { (provider, error) in
-                    DispatchQueue.main.async {
-                        if let imageURL = ((provider as? NSURL) as URL?)?.imageURL {
-                            self.fetchImage(with: imageURL, using: placeholderContext)
-                            
-                        } else {
-                            placeholderContext.deletePlaceholder()
-                        }
+                    if let imageURL = ((provider as? NSURL) as URL?)?.imageURL {
+                        self.fetchImage(with: imageURL, using: placeholderContext)
                     }
                 })
             }
