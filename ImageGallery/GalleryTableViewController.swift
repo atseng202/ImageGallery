@@ -11,13 +11,13 @@ import UIKit
 class GalleryTableViewController: UITableViewController {
     
     
-    var imageGalleries: [String: [(url: URL?, aspectRatio: CGFloat?)]]? {
+    var imageGalleries: [ [ String: [(url: URL?, aspectRatio: CGFloat?)] ] ]? {
         didSet {
             tableView.reloadData()
         }
     }
     
-    var recentlyDeletedImageGalleries: [String: [(url: URL?, aspectRatio: CGFloat?)]]? {
+    var recentlyDeletedImageGalleries: [ [String: [(url: URL?, aspectRatio: CGFloat?)] ] ]? {
         didSet {
             tableView.reloadData()
         }
@@ -26,18 +26,42 @@ class GalleryTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if imageGalleries == nil {
+            imageGalleries = [ [String: [(url: URL?, aspectRatio: CGFloat?)]] ]()
+        }
+        if recentlyDeletedImageGalleries == nil {
+            recentlyDeletedImageGalleries = [[String: [(url: URL?, aspectRatio: CGFloat?)] ] ]()
+        }
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
     }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        if splitViewController?.preferredDisplayMode != .primaryOverlay {
+            splitViewController?.preferredDisplayMode = .primaryOverlay
+        }
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
+    
+    // MARK: - Action Methods
+    
+    @IBAction func addNewGallery(_ sender: UIBarButtonItem) {
+        if imageGalleries != nil {
+            var newGallery: [(URL?, CGFloat?)] = [(url: URL?, aspectRatio: CGFloat?)]()
+            imageGalleries?.append(["Untitled": newGallery])
+        }
+    }
+    
+    
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -49,10 +73,10 @@ class GalleryTableViewController: UITableViewController {
         // #warning Incomplete implementation, return the number of rows
         if section == 0 {
             // regular section
-            return imageGalleries?.keys.count ?? 0
+            return imageGalleries?.count ?? 0
         } else {
             // recently deleted section
-            return recentlyDeletedImageGalleries?.keys.count ?? 0
+            return recentlyDeletedImageGalleries?.count ?? 0
         }
     }
 
@@ -61,8 +85,28 @@ class GalleryTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "GalleryCell", for: indexPath)
 
         // Configure the cell...
+        if let galleryCell = cell as? GalleryTableViewCell {
+            if indexPath.section == 0, imageGalleries != nil {
+                let galleryKeys = imageGalleries![indexPath.row].keys
+                for galleryTitle in galleryKeys {
+                    galleryCell.imageGalleryTitle?.text = galleryTitle
+                }
+            } else if indexPath.section == 1, recentlyDeletedImageGalleries != nil {
+                let galleryKeys = recentlyDeletedImageGalleries![indexPath.row].keys
+                for title in galleryKeys {
+                    galleryCell.imageGalleryTitle?.text = title
+                }
+            }
+            
+        }
 
         return cell
+    }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        if section == 1 {
+            return "Recently Deleted"
+        }
+        return nil
     }
 
     /*
@@ -73,17 +117,34 @@ class GalleryTableViewController: UITableViewController {
     }
     */
 
-    /*
+
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
+            if indexPath.section == 0, imageGalleries != nil {
+                let recentlyDeletedGallery = imageGalleries![indexPath.row]
+                let destinationIndexPath = IndexPath(row: 0, section: 1)
+                tableView.performBatchUpdates({
+                    imageGalleries?.remove(at: indexPath.row)
+                    recentlyDeletedImageGalleries?.insert(recentlyDeletedGallery, at: destinationIndexPath.row)
+                    tableView.deleteRows(at: [indexPath], with: .fade)
+                    tableView.insertRows(at: [destinationIndexPath], with: .automatic)
+                    
+                }, completion: nil) 
+            } else if indexPath.section == 1, recentlyDeletedImageGalleries != nil {
+//                let toBeDeletedGallery = recentlyDeletedImageGalleries![indexPath.row]
+                tableView.performBatchUpdates({
+                    recentlyDeletedImageGalleries!.remove(at: indexPath.row)
+                    tableView.deleteRows(at: [indexPath], with: .fade)
+                }, completion: nil)
+            }
+
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
         }    
     }
-    */
+
 
     /*
     // Override to support rearranging the table view.
@@ -110,15 +171,17 @@ class GalleryTableViewController: UITableViewController {
         if let cell = sender as? GalleryTableViewCell, let indexPath = tableView.indexPath(for: cell) {
             switch segue.identifier {
             case "showImageGallery"?:
-                if let imageGallery = imageGalleries?[(cell.imageGalleryTitle.text)!] {
-                    if let navController = segue.destination as? UINavigationController {
-                        if let galleryCollectionVC = navController.visibleViewController as? ImageGalleryCollectionViewController {
-                            galleryCollectionVC.imageGallery = imageGallery
-                            galleryCollectionVC.title = cell.imageGalleryTitle.text
+                if indexPath.section == 0 {
+                    if let imageGallery = imageGalleries?[indexPath.row][(cell.imageGalleryTitle.text)!] {
+                        if let navController = segue.destination as? UINavigationController {
+                            if let galleryCollectionVC = navController.visibleViewController as? ImageGalleryCollectionViewController {
+                                galleryCollectionVC.imageGallery = imageGallery
+                                galleryCollectionVC.title = cell.imageGalleryTitle.text
+                            }
+                            
                         }
                         
                     }
-                    
                 }
             default:
                 print("Unable to identify segue identifier")
