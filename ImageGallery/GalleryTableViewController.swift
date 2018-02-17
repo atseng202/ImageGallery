@@ -10,7 +10,7 @@ import UIKit
 
 class GalleryTableViewController: UITableViewController {
     
-    
+    // MARK: - Internal Gallery Data Structures
     var imageGalleries: [ [ String: [(url: URL?, aspectRatio: CGFloat?)] ] ]? {
         didSet {
             tableView.reloadData()
@@ -23,6 +23,7 @@ class GalleryTableViewController: UITableViewController {
         }
     }
     
+    // MARK: - View Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -45,6 +46,12 @@ class GalleryTableViewController: UITableViewController {
         if splitViewController?.preferredDisplayMode != .primaryOverlay {
             splitViewController?.preferredDisplayMode = .primaryOverlay
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // TODO: - Do something here to update imageGalleries from collectionView
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -109,13 +116,13 @@ class GalleryTableViewController: UITableViewController {
         return nil
     }
 
-    /*
+
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         // Return false if you do not want the specified item to be editable.
         return true
     }
-    */
+    
 
 
     // Override to support editing the table view.
@@ -144,6 +151,34 @@ class GalleryTableViewController: UITableViewController {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
         }    
     }
+    
+    private func setUpUndeleteAction(for indexPath: IndexPath) -> UIContextualAction {
+        let undeleteAction = UIContextualAction(style: .normal, title: "Undelete", handler: {
+            (action, view, completionHandler) in
+            if self.recentlyDeletedImageGalleries != nil {
+                let restoredGallery = self.recentlyDeletedImageGalleries![indexPath.row]
+                let destinationIndexPath = IndexPath(row: 0, section: 0)
+                self.tableView.performBatchUpdates({
+                    self.recentlyDeletedImageGalleries!.remove(at: indexPath.row)
+                    self.imageGalleries?.insert(restoredGallery, at: destinationIndexPath.row)
+                    self.tableView.deleteRows(at: [indexPath], with: .fade)
+                    self.tableView.insertRows(at: [destinationIndexPath], with: .automatic)
+                }, completion: nil)
+                
+            }
+        })
+        return undeleteAction
+    }
+    
+    override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        if indexPath.section == 1 {
+            let undeleteAction = setUpUndeleteAction(for: indexPath)
+            let configuration = UISwipeActionsConfiguration(actions: [undeleteAction])
+            return configuration
+        } else {
+            return nil
+        }
+    }
 
 
     /*
@@ -171,16 +206,12 @@ class GalleryTableViewController: UITableViewController {
         if let cell = sender as? GalleryTableViewCell, let indexPath = tableView.indexPath(for: cell) {
             switch segue.identifier {
             case "showImageGallery"?:
-                if indexPath.section == 0 {
-                    if let imageGallery = imageGalleries?[indexPath.row][(cell.imageGalleryTitle.text)!] {
-                        if let navController = segue.destination as? UINavigationController {
-                            if let galleryCollectionVC = navController.visibleViewController as? ImageGalleryCollectionViewController {
-                                galleryCollectionVC.imageGallery = imageGallery
-                                galleryCollectionVC.title = cell.imageGalleryTitle.text
-                            }
-                            
+                if indexPath.section == 0, imageGalleries != nil  {
+                    if let imageGallery = imageGalleries![indexPath.row][cell.imageGalleryTitle.text!] {
+                        if let galleryCollectionVC = segue.destination.contentsOfController as? ImageGalleryCollectionViewController {
+                            galleryCollectionVC.imageGallery = imageGallery
+                            galleryCollectionVC.title = cell.imageGalleryTitle.text
                         }
-                        
                     }
                 }
             default:
@@ -193,4 +224,14 @@ class GalleryTableViewController: UITableViewController {
     }
 
 
+}
+
+extension UIViewController {
+    var contentsOfController: UIViewController {
+        if let navController = self as? UINavigationController {
+            return navController.visibleViewController ?? navController
+        } else {
+            return self
+        }
+    }
 }

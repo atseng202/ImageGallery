@@ -12,7 +12,7 @@ private let reuseIdentifier = "Cell"
 
 class ImageGalleryCollectionViewController: UICollectionViewController {
     
-    
+    var tableViewIndex: Int? 
 
     var imageGallery: [(url: URL?, aspectRatio: CGFloat?)]? {
         didSet {
