@@ -14,6 +14,8 @@
 		3F51BAFC202EDEBF003FE967 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F51BAFB202EDEBF003FE967 /* Utilities.swift */; };
 		3F51BAFE202EE2C8003FE967 /* ImageGalleryCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F51BAFD202EE2C8003FE967 /* ImageGalleryCollectionViewController.swift */; };
 		3F51BB00202EEA22003FE967 /* GalleryCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F51BAFF202EEA22003FE967 /* GalleryCollectionViewCell.swift */; };
+		3F51BB022036D057003FE967 /* GalleryTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F51BB012036D056003FE967 /* GalleryTableViewController.swift */; };
+		3F51BB042037A8AE003FE967 /* GalleryTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F51BB032037A8AE003FE967 /* GalleryTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +28,8 @@
 		3F51BAFB202EDEBF003FE967 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		3F51BAFD202EE2C8003FE967 /* ImageGalleryCollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageGalleryCollectionViewController.swift; sourceTree = "<group>"; };
 		3F51BAFF202EEA22003FE967 /* GalleryCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryCollectionViewCell.swift; sourceTree = "<group>"; };
+		3F51BB012036D056003FE967 /* GalleryTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTableViewController.swift; sourceTree = "<group>"; };
+		3F51BB032037A8AE003FE967 /* GalleryTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTableViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +66,8 @@
 				3F51BAEC202EDE47003FE967 /* Main.storyboard */,
 				3F51BAFD202EE2C8003FE967 /* ImageGalleryCollectionViewController.swift */,
 				3F51BAFF202EEA22003FE967 /* GalleryCollectionViewCell.swift */,
+				3F51BB012036D056003FE967 /* GalleryTableViewController.swift */,
+				3F51BB032037A8AE003FE967 /* GalleryTableViewCell.swift */,
 				3F51BAFA202EDE69003FE967 /* Supporting Files */,
 				3F51BAF4202EDE47003FE967 /* Info.plist */,
 			);
@@ -152,6 +158,8 @@
 			files = (
 				3F51BAFE202EE2C8003FE967 /* ImageGalleryCollectionViewController.swift in Sources */,
 				3F51BB00202EEA22003FE967 /* GalleryCollectionViewCell.swift in Sources */,
+				3F51BB042037A8AE003FE967 /* GalleryTableViewCell.swift in Sources */,
+				3F51BB022036D057003FE967 /* GalleryTableViewController.swift in Sources */,
 				3F51BAFC202EDEBF003FE967 /* Utilities.swift in Sources */,
 				3F51BAE9202EDE47003FE967 /* AppDelegate.swift in Sources */,
 			);

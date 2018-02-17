@@ -14,7 +14,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
     
     
 
-    var imageGallery = [(url: URL?, aspectRatio: CGFloat?)]() {
+    var imageGallery: [(url: URL?, aspectRatio: CGFloat?)]? {
         didSet {
             collectionView?.reloadData()
         }
@@ -34,7 +34,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print("Image gallery count: \(imageGallery.count)")
+        print("Image gallery count: \(imageGallery?.count ?? 0)")
         collectionView?.dropDelegate = self
         collectionView?.dragDelegate = self
         
@@ -52,7 +52,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        print("Image gallery count: \(imageGallery.count)")
+        print("Image gallery count: \(imageGallery?.count ?? 0)")
     }
     
     // MARK: - Gesture Methods
@@ -85,7 +85,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return imageGallery.count
+        return imageGallery?.count ?? 0
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -94,7 +94,7 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
         // Configure the cell
         if let imageCell = cell as? GalleryCollectionViewCell {
             imageCell.image = nil 
-            imageCell.imageURL = imageGallery[indexPath.item].url
+            imageCell.imageURL = imageGallery?[indexPath.item].url
         }
     
         return cell
@@ -149,11 +149,11 @@ extension ImageGalleryCollectionViewController: UICollectionViewDropDelegate {
                 // item confirmed to come locally
                 if let image = item.dragItem.localObject as? UIImage {
 //                    let aspectRatio = image.size.width / image.size.height
-                    let itemToBeInserted = imageGallery[sourceIndexPath.item]
+                    let itemToBeInserted = imageGallery?[sourceIndexPath.item]
                     collectionView.performBatchUpdates({
-                        self.imageGallery.remove(at: sourceIndexPath.item)
+                        self.imageGallery?.remove(at: sourceIndexPath.item)
                         collectionView.deleteItems(at: [sourceIndexPath])
-                        self.imageGallery.insert(itemToBeInserted, at: destinationIndexPath.item)
+                        self.imageGallery?.insert(itemToBeInserted!, at: destinationIndexPath.item)
                         collectionView.insertItems(at: [destinationIndexPath])
                     }, completion: nil)
                     coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
@@ -182,7 +182,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDropDelegate {
                             galleryInfo.0 = imageURL
                             
                             placeholderContext.commitInsertion(dataSourceUpdates: { (insertionIndexPath) in
-                                self.imageGallery.insert(galleryInfo, at: insertionIndexPath.item)
+                                self.imageGallery?.insert(galleryInfo, at: insertionIndexPath.item)
                             })
                         }
                     } else {
@@ -203,7 +203,7 @@ extension ImageGalleryCollectionViewController: UICollectionViewDelegateFlowLayo
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         
-        let aspectRatio = imageGallery[indexPath.item].aspectRatio
+        let aspectRatio = imageGallery?[indexPath.item].aspectRatio
         let cellWidth = CGFloat(200.0) * scaleForWidthOfCells
         let cellHeight = cellWidth / aspectRatio!
         return CGSize(width: cellWidth, height: cellHeight)
