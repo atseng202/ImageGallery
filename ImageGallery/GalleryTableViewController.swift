@@ -10,17 +10,24 @@ import UIKit
 
 class GalleryTableViewController: UITableViewController {
     
+    var mostRecentGalleryIndexSeguedFromTableView = 0
+    var mostRecentTitle = "Untitled"
+    
     // MARK: - Internal Gallery Data Structures
-    var imageGalleries: [ [ String: [(url: URL?, aspectRatio: CGFloat?)] ] ]? {
+    var imageGalleries: [ [ String: [(url: URL?, aspectRatio: CGFloat?)] ] ]! {
         didSet {
             tableView.reloadData()
         }
     }
     
-    var recentlyDeletedImageGalleries: [ [String: [(url: URL?, aspectRatio: CGFloat?)] ] ]? {
+    var recentlyDeletedImageGalleries: [ [String: [(url: URL?, aspectRatio: CGFloat?)] ] ]! {
         didSet {
             tableView.reloadData()
         }
+    }
+    
+    deinit {
+        print("GalleryTableVC has left the heap")
     }
     
     // MARK: - View Lifecycle
@@ -28,11 +35,12 @@ class GalleryTableViewController: UITableViewController {
         super.viewDidLoad()
 
         if imageGalleries == nil {
-            imageGalleries = [ [String: [(url: URL?, aspectRatio: CGFloat?)]] ]()
+            imageGalleries = [ ["Untitled": [(url: URL?, aspectRatio: CGFloat?)]() ] ]
         }
         if recentlyDeletedImageGalleries == nil {
             recentlyDeletedImageGalleries = [[String: [(url: URL?, aspectRatio: CGFloat?)] ] ]()
         }
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -43,6 +51,7 @@ class GalleryTableViewController: UITableViewController {
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         
+        
         if splitViewController?.preferredDisplayMode != .primaryOverlay {
             splitViewController?.preferredDisplayMode = .primaryOverlay
         }
@@ -51,7 +60,30 @@ class GalleryTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // TODO: - Do something here to update imageGalleries from collectionView
+        if let navCon = splitViewController?.viewControllers[1] as? UINavigationController {
+            print("We have a navVC")
+            print(navCon.viewControllers.first)
+            if let galleryCollectionVC = navCon.viewControllers.first as? ImageGalleryCollectionViewController{
+                if let gallery = galleryCollectionVC.imageGallery {
+                    imageGalleries[mostRecentGalleryIndexSeguedFromTableView][mostRecentTitle] = gallery
+                    print("Successfully updated imageGallery")
+                }
+            }
+        }
+        
+        
 
+        
+        tableView.reloadData()
+        print("Is gallery nil: \(imageGalleries == nil)")
+        print("Current number of active galleries: \(imageGalleries!.count)")
+    
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        print("TableView did appear")
     }
 
     override func didReceiveMemoryWarning() {
@@ -63,10 +95,14 @@ class GalleryTableViewController: UITableViewController {
     
     @IBAction func addNewGallery(_ sender: UIBarButtonItem) {
         if imageGalleries != nil {
-            var newGallery: [(URL?, CGFloat?)] = [(url: URL?, aspectRatio: CGFloat?)]()
-            imageGalleries?.append(["Untitled": newGallery])
+            let newGallery = [(url: URL?, aspectRatio: CGFloat?)]()
+            var allTitles = [String]()
+            imageGalleries.forEach { allTitles.append($0.keys.first!)}
+            imageGalleries?.append(["Untitled".madeUnique(withRespectTo: allTitles): newGallery])
         }
     }
+    
+  
     
     
     // MARK: - Table view data source
@@ -93,22 +129,43 @@ class GalleryTableViewController: UITableViewController {
 
         // Configure the cell...
         if let galleryCell = cell as? GalleryTableViewCell {
+        
             if indexPath.section == 0, imageGalleries != nil {
-                let galleryKeys = imageGalleries![indexPath.row].keys
-                for galleryTitle in galleryKeys {
-                    galleryCell.imageGalleryTitle?.text = galleryTitle
+                // resignation handler for both sections is for handling changes to textField and corresponding title of gallery
+                galleryCell.resignationHandler = { [weak self, unowned galleryCell] in
+                    let uneditedText = self?.imageGalleries![indexPath.row].keys.first!
+                    if let text = galleryCell.galleryTextField.text, !text.elementsEqual(uneditedText!) {
+                        let preservedGallery = self?.imageGalleries![indexPath.row].values.first!
+                        // let ogKey = self?.imageGalleries![indexPath.row].keys.first!
+                        self?.imageGalleries![indexPath.row][uneditedText!] = nil
+                        self?.imageGalleries![indexPath.row][text] = preservedGallery
+
+                    }
                 }
+                let title = imageGalleries![indexPath.row].keys.first!
+                galleryCell.galleryTextField.text = title
+                
             } else if indexPath.section == 1, recentlyDeletedImageGalleries != nil {
-                let galleryKeys = recentlyDeletedImageGalleries![indexPath.row].keys
-                for title in galleryKeys {
-                    galleryCell.imageGalleryTitle?.text = title
+                galleryCell.resignationHandler = { [weak self, unowned galleryCell] in
+                    let uneditedText = self?.recentlyDeletedImageGalleries![indexPath.row].keys.first!
+//                    (self?.recentlyDeletedImageGalleries![indexPath.row].keys.contains(text))! {
+                    if let text = galleryCell.galleryTextField.text, !text.elementsEqual(uneditedText!) {
+                        let preservedGallery = self?.recentlyDeletedImageGalleries![indexPath.row].values.first!
+                        self?.recentlyDeletedImageGalleries![indexPath.row].removeAll()
+                        self?.recentlyDeletedImageGalleries![indexPath.row][text] = preservedGallery
+                    }
                 }
+                let title = recentlyDeletedImageGalleries![indexPath.row].keys.first!
+                galleryCell.galleryTextField.text = title
+                
             }
             
         }
 
         return cell
+
     }
+
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if section == 1 {
             return "Recently Deleted"
@@ -207,10 +264,15 @@ class GalleryTableViewController: UITableViewController {
             switch segue.identifier {
             case "showImageGallery"?:
                 if indexPath.section == 0, imageGalleries != nil  {
-                    if let imageGallery = imageGalleries![indexPath.row][cell.imageGalleryTitle.text!] {
+                    print("Text: \(cell.galleryTextField.text!)")
+                    if let imageGallery = imageGalleries[indexPath.row][cell.galleryTextField.text!] {
+    
                         if let galleryCollectionVC = segue.destination.contentsOfController as? ImageGalleryCollectionViewController {
+                            mostRecentGalleryIndexSeguedFromTableView = indexPath.row
+                            mostRecentTitle = cell.galleryTextField.text!
                             galleryCollectionVC.imageGallery = imageGallery
-                            galleryCollectionVC.title = cell.imageGalleryTitle.text
+                            print("ImageGallery count during segue: \(imageGallery.count)")
+                            galleryCollectionVC.title = cell.galleryTextField.text!
                         }
                     }
                 }

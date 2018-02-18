@@ -14,10 +14,14 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
     
     var tableViewIndex: Int? 
 
-    var imageGallery: [(url: URL?, aspectRatio: CGFloat?)]? {
+    var imageGallery: [(url: URL?, aspectRatio: CGFloat?)]! {
         didSet {
             collectionView?.reloadData()
         }
+    }
+    
+    deinit {
+        print("ImageGalleryCollectionVC has left the heap")
     }
     
     private var flowLayout: UICollectionViewFlowLayout? {
@@ -40,13 +44,21 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
         
         let pinch = UIPinchGestureRecognizer(target: self, action: #selector(self.changeWidthScale(byReactingTo:)))
         collectionView?.addGestureRecognizer(pinch)
+        
+        
+        self.navigationItem.rightBarButtonItem = splitViewController?.displayModeButtonItem
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        print("View will appear")
+        print("CollectionView will appear")
+        collectionView?.reloadData()
         flowLayout?.invalidateLayout()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
     }
     
     override func viewDidLayoutSubviews() {
@@ -65,15 +77,26 @@ class ImageGalleryCollectionViewController: UICollectionViewController {
             break
         }
     }
-    /*
+
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using [segue destinationViewController].
         // Pass the selected object to the new view controller.
+        switch segue.identifier {
+        case "showImage"?:
+            if let cell = sender as? GalleryCollectionViewCell, let indexPath = collectionView?.indexPath(for: cell) {
+                if let imageVC = segue.destination.contentsOfController as? ImageViewController {
+                    imageVC.imageURL = cell.imageURL
+                }
+            }
+        default:
+            assertionFailure("Unable to identify segue identifier")
+            break
+        }
     }
-    */
+
 
     // MARK: UICollectionViewDataSource
 

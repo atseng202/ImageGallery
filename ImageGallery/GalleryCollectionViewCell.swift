@@ -62,4 +62,6 @@ class GalleryCollectionViewCell: UICollectionViewCell {
             }
         }
     }
+    
+    
 }
